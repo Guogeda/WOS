@@ -93,73 +93,7 @@ pip install bs4
 * 新建txt文档
 
 #### 爬取逻辑
-
-##### 1. 获取SID
-
-* <img src="C:\Users\GuoHongjie\AppData\Roaming\Typora\typora-user-images\image-20201005091725497.png" alt="image-20201005091725497" style="zoom:25%;" />
-
-  ​	如图所示，当我们输入`http://apps.webofknowledge.com/` 时，浏览器就加载两个重要页面，一个是我们输入的url（图中1），另一个就是基本检索url（图中2），这时会发现`Status Code`为302，简单理解就是他跳转其他页面了，跳转的页面可以在 `Response Headers`下的`Location`找到，然后看看看基本检索的url（图中的2），其构造多一个SID参数，于是我们得顺腾摸瓜寻找SID参数。摸瓜方式就是寻找他的响应值，参考下图可以很容易找到，然后将其提取出来。
-
-  ​	<img src="C:\Users\GuoHongjie\AppData\Roaming\Typora\typora-user-images\image-20201005092625363.png" alt="image-20201005092625363" style="zoom:25%;" />![image-20201005092743089](C:\Users\GuoHongjie\AppData\Roaming\Typora\typora-user-images\image-20201005092743089.png)
-
-  ​	<img src="C:\Users\GuoHongjie\AppData\Roaming\Typora\typora-user-images\image-20201005092839929.png" alt="image-20201005092839929" style="zoom:25%;" />
-
-
-
-##### 2. 进行高级检索
-
-* 检索所需要的[语法介绍](http://images.webofknowledge.com//WOKRS535R100/help/zh_CN/WOK/hp_advanced_examples.html)
-
-* 发起POST请求
-
-  1. <img src="C:\Users\GuoHongjie\AppData\Roaming\Typora\typora-user-images\image-20201005093455326.png" alt="image-20201005093455326" style="zoom:25%;" />
-
-     ​	如图所示，当发起请求之后，出现了老朋友302，不过这里是POST请求，所以需要 `Form Data`进行提交。按照浏览器找到的元素保存为dict就行。具体参数分析见参考资料中的大佬的分享。
-
-     <img src="C:\Users\GuoHongjie\AppData\Roaming\Typora\typora-user-images\image-20201005093858190.png" alt="image-20201005093858190" style="zoom:25%;" />
-
-##### 3. 高级检索结果分析
-
-1. 高级检索后不会直接跳转页面，而是在网页下边检索历史中，我们所需要的结果在检索结果中，点击数字即可跳转。
-
-   <img src="C:\Users\GuoHongjie\AppData\Roaming\Typora\typora-user-images\image-20201005094427110.png" alt="image-20201005094427110" style="zoom:25%;" />
-
-2. 分析上图框框里的url，可以看到里面又多了个参数`qid`,所以，我们需要找到这个参数在哪里？其实很简单，和上面的方法是一样的
-
-   <img src="C:\Users\GuoHongjie\AppData\Roaming\Typora\typora-user-images\image-20201005094930100.png" alt="image-20201005094930100" style="zoom:25%;" />
-
-   可以看到，我上面标了3个参数`qid`,`SID`,`JSESSIONID`.这个是我在爬取的时候，发现`JSESSIONID`参数加上之后可以让爬虫更稳定，不然有时候就获取不了网页结果。更新之后的url为
-
-   ```python
-   entry_url = 'http://apps.webofknowledge.com/summary.do;jsessionid={jse}?product=UA&doc=1&qid={qid}&SID={sid}&search_mode=AdvancedSearch&update_back2search_link_param=yes'
-   ```
-
-3. GET 提取的 URL 就进入了我们所需要的界面，
-
-   <img src="C:\Users\GuoHongjie\AppData\Roaming\Typora\typora-user-images\image-20201005095734759.png" alt="image-20201005095734759" style="zoom:25%;" />
-
-##### 4. 导出页面分析
-
-1. 导出页面由两部分url组成，一部分为导出所选标记，另一部分为下载所选文件，其所对应的页面逻辑分别为
-
-   <img src="C:\Users\GuoHongjie\AppData\Roaming\Typora\typora-user-images\image-20201006103156623.png" alt="image-20201006103156623" style="zoom:25%;" />
-
-   
-
-   ​														<img src="C:\Users\GuoHongjie\AppData\Roaming\Typora\typora-user-images\image-20201006103348817.png" alt="image-20201006103348817" style="zoom:25%;" />
-
-   
-
-2. 可以看到这也就是一个重定向的POST+GET方式，和上面相同，所以直接POST好对应的`form_data`就行。
-
-   <img src="C:\Users\GuoHongjie\AppData\Roaming\Typora\typora-user-images\image-20201006103816563.png" alt="image-20201006103816563" style="zoom:25%;" />
-
-   
-
-3. 大概流程就是这样，目前实现了两个功能。
-   * 根据检索方式导出页面论文，支持导出500+，WOS限制为一次只能导出500，但是不能超过上限20000
-   * 根据 DOI 检索获取该论文的所有参考文献。同时将WOS中无法导出的论文信息保存在`no_doi.txt` 文件中。
-
+* 参考总结pdf文件，git放图好累
 
 
 ### 遇到的奇葩问题总结
